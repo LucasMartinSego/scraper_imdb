@@ -1,0 +1,56 @@
+# Archivos de dependencias
+node_modules/
+
+# Archivos de configuración de entorno
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Archivos de registro
+*.log
+logs/
+
+# Archivos de IDE/Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de depuración
+debug.log
+*.pid
+
+# Archivos de compilación
+dist/
+build/
+out/
+*.exe
+*.dll
+
+# Archivos de testing
+coverage/
+.nyc_output/
+
+# Archivos de paquetes
+*.tgz
+
+# Archivos temporales
+*.tmp
+temp/
+tmp/
+
+# Archivos específicos que no quieres versionar
+# (pero veo que resultado.json está en tu repo, así que no lo incluyo)
+# resultado.json
+
+# Archivos markdown alternativos (si no quieres versionar Untitled-2.md)
+# Untitled-2.md

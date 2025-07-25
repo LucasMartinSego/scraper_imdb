@@ -1,6 +1,7 @@
 const fs = require('fs');
+const cheerio = require('cheerio');
 
-const fetchIMDB = async () => {
+(async () => {
     const res = await fetch("https://www.imdb.com/es-es/chart/top/", {
         headers: {
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -18,27 +19,32 @@ const fetchIMDB = async () => {
         },
         method: "GET"
     });
+    const html = await res.text();
 
-    const html = await res.text(); // <- aquí extraes el contenido como texto
-    return html;
-}
+    const $ = cheerio.load(html);
 
-// Ejecutar y mostrar resultado
-fetchIMDB().then(html => {
-    console.log(html); // Aquí ves el contenido HTML de la página
-}).catch(err => {
-    console.error("Error al hacer la petición:", err);
-});
-
-
-fs.readFile('./Untitled-1.json', 'utf8', (err, data) => {
-    if (err) {
-        console.error('Error al leer el archivo:', err);
-        return;
-    }
-
+    const res2 = await fetch("https://caching.graphql.imdb.com/?operationName=Top250MoviesPagination&variables=%7B%22first%22%3A250%2C%22isInPace%22%3Afalse%2C%22locale%22%3A%22es-ES%22%7D&extensions=%7B%22persistedQuery%22%3A%7B%22sha256Hash%22%3A%222db1d515844c69836ea8dc532d5bff27684fdce990c465ebf52d36d185a187b3%22%2C%22version%22%3A1%7D%7D", {
+        "headers": {
+            "accept": "application/graphql+json, application/json",
+            "content-type": "application/json",
+            "sec-ch-ua": "\"Not)A;Brand\";v=\"8\", \"Chromium\";v=\"138\", \"Google Chrome\";v=\"138\"",
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": "\"Windows\"",
+            "x-amzn-sessionid": "147-3462859-0130357",
+            "x-imdb-client-name": "imdb-web-next-localized",
+            "x-imdb-client-rid": "EHYV87XVQF5SGR8H9B3D",
+            "x-imdb-user-country": "ES",
+            "x-imdb-user-language": "es-ES",
+            "x-imdb-weblab-treatment-overrides": "{}",
+            "Referer": "https://www.imdb.com/"
+        },
+        "body": null,
+        "method": "GET"
+    });
+    const api = await res2.json();
+    console.log(api);
     try {
-        const jsonData = JSON.parse(data);
+        const jsonData = JSON.parse($('#__NEXT_DATA__').html());
         const nodes = jsonData.props.pageProps.pageData.chartTitles.edges;
         const datos = [];
 
@@ -55,7 +61,14 @@ fs.readFile('./Untitled-1.json', 'utf8', (err, data) => {
                     count: info.ratingsSummary.voteCount
                 },
                 clasification: info.certificate?.rating ?? '',
-                duration: info.runtime.seconds
+                duration: info.runtime.seconds,
+                members: api.data.chartTitles.edges
+                    .find(e => e.node.id === info.id)
+                    ?.node.principalCredits.map(apiInfo => ({
+                        category: apiInfo.category.text,
+                        credits: apiInfo.credits.map(c => c.name.nameText)
+                    })) ?? []
+
             });
         });
 
@@ -71,4 +84,7 @@ fs.readFile('./Untitled-1.json', 'utf8', (err, data) => {
     } catch (parseErr) {
         console.error('Error al parsear JSON:', parseErr);
     }
-});
+
+
+    console.log('fin');
+})();

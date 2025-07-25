@@ -1,0 +1,4 @@
+prueba_json@ H:\TEMP\lucas segovia\prueba_json
+├── cheerio@1.1.0
+└── node-fetch@3.3.2
+
