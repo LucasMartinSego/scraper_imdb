@@ -81,6 +81,17 @@ const cheerio = require('cheerio');
             console.log('Datos guardados en resultado.json');
         });
 
+        // Guardar en nuevo archivo CSV
+        const csvData = convertToCSV(datos);
+        fs.writeFile('./resultado.csv', csvData, 'utf8', err => {
+            if (err) {
+                console.error('Error al escribir el archivo CSV:', err);
+                return;
+            }
+            console.log('Datos guardados en resultado.csv');
+        });
+
+
     } catch (parseErr) {
         console.error('Error al parsear JSON:', parseErr);
     }
@@ -88,3 +99,48 @@ const cheerio = require('cheerio');
 
     console.log('fin');
 })();
+
+function convertToCSV(arr) {
+    const headers = [
+        "id",
+        "title",
+        "releaseTear",
+        "img",
+        "genres",
+        "rating",
+        "ratingCount",
+        "clasification",
+        "duration",
+        "members"
+    ];
+
+    const csvRows = [headers.join(",")];
+
+    arr.forEach(obj => {
+        const membersText = obj.members.map(m => {
+            const creditNames = m.credits.map(c =>
+                typeof c === 'string'
+                    ? c
+                    : c.nameText || c.name?.nameText || ''
+            ).join(' / ');
+            return `${m.category}: ${creditNames}`;
+        }).join(' | ');
+
+        const row = [
+            `"${obj.id}"`,
+            `"${obj.title.replace(/"/g, '""')}"`,
+            obj.releaseTear,
+            `"${obj.img}"`,
+            `"${obj.genres}"`,
+            obj.rating.rat,
+            obj.rating.count,
+            `"${obj.clasification}"`,
+            obj.duration,
+            `"${membersText.replace(/"/g, '""')}"`
+        ];
+
+        csvRows.push(row.join(","));
+    });
+
+    return csvRows.join("\n");
+}
